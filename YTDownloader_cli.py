@@ -7,6 +7,7 @@ from moviepy.editor import *
 # Some characters dont work when calling them with os.exists, os.remove, etc. ($)
 # Get rid of filename_prefix?
 # Catch wrong youtube link error
+# Download mp4 file in a temp folder before converting
 
 while True:
     url = input("Enter the youtube URL: ")
