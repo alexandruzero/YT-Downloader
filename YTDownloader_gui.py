@@ -1,31 +1,53 @@
 #!/usr/bin/python
 import os
 import sys
+from time import sleep
 from tkinter import *
 from pytube import YouTube
 from datetime import timedelta
+from moviepy.editor import *
 # To do
-# Convert mp4 to mp3 at audio function
+# Fix update bind button
+# Some characters dont work when calling them with os.exists, os.remove, etc. ($#)
 
+full_path = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop/')  # Generic desktop path
+# Video not available issue
+audio_err = '1Video Not Available.mp4'
+video_err = '2Video Not Available.mp4'
 
 def audio():
-    url = str(user_input.get())
-    update()
-    YouTube(url).streams.get_audio_only().download('/home/alex/Desktop/', filename_prefix='1')
-    title = '/home/alex/Desktop/' + '1' + YouTube(url).title + '.mp4'
-    filename = title.replace('.mp4', '.mp3')
-    os.rename(title, filename)
-    info_status.config(text='Status: Audio downloaded')
+    audio_download_file = yt.streams.get_audio_only().download(full_path, filename_prefix='1')
+    # Checks if the file downloaded correctly
+    if os.path.exists(full_path + audio_err):
+            os.remove(full_path + audio_err)
+            info_status.config(text='Status: Download failed. Retrying...')  
+            root.update()
+            sleep(1.6)
+            audio_download_file # Retries to download the file
+    else:
+        info_status.config(text='Status: Converting to mp3...')  
+        root.update() # Updates status message
+        convert_mp3 = AudioFileClip(full_path + '1' + str(yt.title) + '.mp4')   
+        convert_mp3.write_audiofile(full_path + '1' + str(yt.title) + '.mp3')
+        convert_mp3.close()
+        os.remove(full_path + '1' + str(yt.title) + '.mp4')
+        info_status.config(text='Status: Audio file downloaded.')
 
 
 def video():
-    url = str(user_input.get())
     update()
-    YouTube(url).streams.get_highest_resolution().download('/home/alex/Desktop/', filename_prefix='2')
-    info_status.config(text='Status: Video downloaded')
+    video_download_file = yt.streams.get_highest_resolution().download(full_path, filename_prefix='2')
+    if os.path.exists(full_path + video_err):
+            os.remove(full_path + video_err)
+            info_status.config(text='Status: Download failed. Retrying...')  
+            root.update()
+            sleep(1.6)
+            video_download_file # Retries to download the file
+    info_status.config(text='Status: Video file downloaded.')
 
 
 def update():
+    global url, yt
     url = str(user_input.get())
     yt = YouTube(url)
     info_channel_id.config(text='ID: ' + str(yt.channel_id))
@@ -38,7 +60,6 @@ def update():
     info_status.config(text='Status: Downloading...')
     root.update()
     user_input.delete(0, END)
-    #info_status.config('Rating:    ')
 
 
 # Main window
